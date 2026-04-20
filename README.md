@@ -1,1 +1,1 @@
-https://dbna1027-ctrl/github.io
+https://dbna1027-ctrl.github.io/
