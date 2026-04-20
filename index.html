@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KeyTrack — 네이버 블로그 키워드 트래커</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --bg2: #edecea;
+      --ink: #1a1a18;
+      --ink2: #6b6b66;
+      --ink3: #9e9e99;
+      --accent: #2a5fff;
+      --accent-light: #eaf0ff;
+      --border: #ddddd8;
+      --card: #ffffff;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Pretendard', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-weight: 400;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 60px;
+      background: rgba(245,244,240,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      letter-spacing: 0.04em;
+    }
+
+    /* HERO */
+    .hero {
+      padding: 160px 48px 100px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.1s forwards;
+    }
+
+    .hero-label::before {
+      content: '';
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(42px, 6vw, 72px);
+      font-weight: 600;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.2s forwards;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero-desc {
+      font-size: 18px;
+      color: var(--ink2);
+      max-width: 520px;
+      line-height: 1.75;
+      margin-bottom: 48px;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.3s forwards;
+    }
+
+    .hero-cta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.4s forwards;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+
+    .btn-secondary {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--ink3);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .btn-secondary:hover { color: var(--ink); }
+
+    /* STATS */
+    .stats {
+      display: flex;
+      gap: 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin: 0 48px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.5s forwards;
+    }
+
+    .stat {
+      flex: 1;
+      padding: 32px 48px;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-num span { color: var(--accent); }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--ink3);
+    }
+
+    /* FEATURES */
+    .section {
+      padding: 100px 48px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      max-width: 200px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--card);
+      padding: 40px;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .feature-card:hover { background: var(--accent-light); }
+
+    .feature-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--bg2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 20px;
+      transition: background 0.2s;
+    }
+
+    .feature-card:hover .feature-icon { background: var(--accent); }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--ink2);
+      line-height: 1.65;
+    }
+
+    /* STATUS */
+    .status-section {
+      margin: 0 48px 100px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--card);
+    }
+
+    .status-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .status-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .status-live {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #22a06b;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22a06b;
+      animation: pulse 2s infinite;
+    }
+
+    .status-list {
+      list-style: none;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--ink2);
+      transition: background 0.15s;
+    }
+
+    .status-item:last-child { border-bottom: none; }
+    .status-item:hover { background: var(--bg); }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .done { background: #22a06b; }
+    .wip  { background: var(--accent); animation: pulse 2s infinite; }
+    .todo { background: var(--border); }
+
+    .status-tag {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .tag-done { background: #e6f6ef; color: #22a06b; }
+    .tag-wip  { background: var(--accent-light); color: var(--accent); }
+    .tag-todo { background: var(--bg2); color: var(--ink3); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--ink3);
+    }
+
+    .footer-logo span { color: var(--accent); }
+
+    .footer-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* SCROLL REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .hero { padding: 120px 20px 60px; }
+      h1 { font-size: 36px; }
+      .stats { margin: 0 20px; flex-direction: column; }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); padding: 24px 20px; }
+      .stat:last-child { border-bottom: none; }
+      .section { padding: 60px 20px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .status-section { margin: 0 20px 60px; }
+      footer { padding: 24px 20px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-logo">Key<span>Track</span></div>
+    <div class="nav-badge">개발 중 · v0.1</div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-label">Naver Blog SEO Tool</div>
+    <h1>키워드 순위,<br>자동으로 <em>트래킹</em></h1>
+    <p class="hero-desc">
+      네이버 블로그 운영자를 위한 키워드 분석 툴.<br>
+      수천 개의 키워드를 자동으로 분석하고,<br>
+      내 글의 검색 순위를 매일 추적합니다.
+    </p>
+    <div class="hero-cta">
+      <a href="https://github.com" class="btn-primary">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.341-3.369-1.341-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+        GitHub 보기
+      </a>
+      <a href="#features" class="btn-secondary">기능 살펴보기 →</a>
+    </div>
+  </section>
+
+  <div class="stats reveal">
+    <div class="stat">
+      <div class="stat-num">1,000<span>+</span></div>
+      <div class="stat-label">처리 가능한 키워드 수</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24<span>h</span></div>
+      <div class="stat-label">자동 순위 갱신 주기</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3<span>개월</span></div>
+      <div class="stat-label">개발 기간 목표</div>
+    </div>
+  </div>
+
+  <section class="section" id="features">
+    <div class="section-label reveal">기능 목록</div>
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <div class="feature-num">01</div>
+        <div class="feature-icon">📈</div>
+        <div class="feature-title">순위 자동 트래킹</div>
+        <div class="feature-desc">등록한 키워드의 네이버 검색 순위를 매일 자동으로 수집하고 변화를 기록합니다.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">02</div>
+        <div class="feature-icon">🔍</div>
+        <div class="feature-title">키워드 발굴</div>
+        <div class="feature-desc">네이버 검색광고 API를 활용해 검색량, 경쟁도, 트렌드를 한번에 분석합니다.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">03</div>
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">AI 인사이트</div>
+        <div class="feature-desc">수집된 데이터를 AI가 분석해 지금 쓰기 좋은 키워드와 글 방향을 추천합니다.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">04</div>
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">대시보드 시각화</div>
+        <div class="feature-desc">순위 변화를 그래프로 시각화해 한눈에 내 블로그 SEO 현황을 파악할 수 있습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="status-section reveal">
+    <div class="status-header">
+      <span class="status-title">// 개발 진행 상황</span>
+      <span class="status-live"><span class="dot"></span>in progress</span>
+    </div>
+    <ul class="status-list">
+      <li class="status-item">
+        <span class="status-dot done"></span>
+        프로젝트 기획 및 설계
+        <span class="status-tag tag-done">완료</span>
+      </li>
+      <li class="status-item">
+        <span class="status-dot wip"></span>
+        Playwright 기반 순위 트래커 구현
+        <span class="status-tag tag-wip">진행 중</span>
+      </li>
+      <li class="status-item">
+        <span class="status-dot todo"></span>
+        SQLite 데이터 저장 및 스케줄러
+        <span class="status-tag tag-todo">예정</span>
+      </li>
+      <li class="status-item">
+        <span class="status-dot todo"></span>
+        키워드 발굴 기능 (네이버 API 연동)
+        <span class="status-tag tag-todo">예정</span>
+      </li>
+      <li class="status-item">
+        <span class="status-dot todo"></span>
+        AI 인사이트 엔진
+        <span class="status-tag tag-todo">예정</span>
+      </li>
+      <li class="status-item">
+        <span class="status-dot todo"></span>
+        대시보드 UI 및 배포
+        <span class="status-tag tag-todo">예정</span>
+      </li>
+    </ul>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Key<span>Track</span></div>
+    <div class="footer-note">built with Python · Playwright · Claude API</div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
