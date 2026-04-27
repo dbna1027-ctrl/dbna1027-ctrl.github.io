@@ -4,22 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KeyTrack — 네이버 블로그 키워드 트래커</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f5f4f0;
-      --bg2: #edecea;
-      --ink: #1a1a18;
-      --ink2: #6b6b66;
-      --ink3: #9e9e99;
-      --accent: #2a5fff;
-      --accent-light: #eaf0ff;
-      --border: #ddddd8;
-      --card: #ffffff;
-      --mono: 'DM Mono', monospace;
-      --sans: 'Pretendard', sans-serif;
+      --bg: #09090b;
+      --bg2: #111113;
+      --bg3: #1a1a1f;
+      --ink: #fafaf9;
+      --ink2: #a1a1aa;
+      --ink3: #52525b;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --accent-dim: rgba(99,102,241,0.12);
+      --accent-border: rgba(99,102,241,0.3);
+      --green: #34d399;
+      --green-dim: rgba(52,211,153,0.1);
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.04);
+      --card: rgba(255,255,255,0.03);
+      --sans: 'Geist', sans-serif;
+      --serif: 'Instrument Serif', serif;
+      --mono: 'Geist Mono', monospace;
+      --r: 10px;
     }
 
     html { scroll-behavior: smooth; }
@@ -31,6 +39,31 @@
       font-weight: 400;
       line-height: 1.7;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* NOISE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* GLOW BG */
+    .glow-bg {
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(99,102,241,0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* NAV */
@@ -41,168 +74,226 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 48px;
-      height: 60px;
-      background: rgba(245,244,240,0.88);
-      backdrop-filter: blur(12px);
+      padding: 0 40px;
+      height: 58px;
+      background: rgba(9,9,11,0.8);
+      backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
 
     .nav-logo {
       font-family: var(--mono);
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
       color: var(--ink);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 2px;
     }
 
-    .nav-logo span { color: var(--accent); }
+    .nav-logo-dot { color: var(--accent2); }
 
-    .nav-badge {
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-family: var(--mono);
       font-size: 11px;
-      color: var(--ink3);
-      background: var(--bg2);
-      border: 1px solid var(--border);
+      color: var(--accent2);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
       border-radius: 20px;
       padding: 3px 10px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent2);
+      animation: blink 2s ease-in-out infinite;
     }
 
     /* HERO */
     .hero {
-      padding: 160px 48px 100px;
-      max-width: 900px;
+      position: relative;
+      z-index: 1;
+      padding: 148px 40px 80px;
+      max-width: 780px;
       margin: 0 auto;
     }
 
-    .hero-label {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 24px;
-      display: flex;
+    .hero-eyebrow {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
       opacity: 0;
-      animation: fadeUp 0.6s ease 0.1s forwards;
+      animation: fadeUp 0.7s ease 0.1s forwards;
     }
 
-    .hero-label::before {
-      content: '';
-      display: inline-block;
-      width: 24px;
+    .hero-eyebrow-line {
+      width: 20px;
       height: 1px;
-      background: var(--accent);
+      background: var(--ink3);
     }
 
     h1 {
-      font-size: clamp(42px, 6vw, 72px);
+      font-size: clamp(44px, 6.5vw, 76px);
       font-weight: 600;
-      line-height: 1.08;
-      letter-spacing: -0.03em;
+      line-height: 1.04;
+      letter-spacing: -0.04em;
       color: var(--ink);
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       opacity: 0;
-      animation: fadeUp 0.6s ease 0.2s forwards;
+      animation: fadeUp 0.7s ease 0.2s forwards;
     }
 
-    h1 em {
-      font-style: normal;
-      color: var(--accent);
+    h1 .serif {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-style: italic;
+      color: var(--accent2);
+      letter-spacing: -0.02em;
     }
 
     .hero-desc {
-      font-size: 18px;
+      font-size: 17px;
       color: var(--ink2);
-      max-width: 520px;
-      line-height: 1.75;
-      margin-bottom: 48px;
+      max-width: 480px;
+      line-height: 1.8;
+      margin-bottom: 44px;
       font-weight: 300;
       opacity: 0;
-      animation: fadeUp 0.6s ease 0.3s forwards;
+      animation: fadeUp 0.7s ease 0.3s forwards;
     }
 
     .hero-cta {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       opacity: 0;
-      animation: fadeUp 0.6s ease 0.4s forwards;
+      animation: fadeUp 0.7s ease 0.4s forwards;
     }
 
     .btn-primary {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: var(--ink);
+      background: var(--accent);
       color: #fff;
       font-family: var(--sans);
       font-size: 14px;
       font-weight: 500;
-      padding: 12px 24px;
-      border-radius: 6px;
+      padding: 10px 20px;
+      border-radius: var(--r);
       text-decoration: none;
-      transition: background 0.2s, transform 0.15s;
+      transition: all 0.2s;
+      letter-spacing: -0.01em;
+      box-shadow: 0 0 24px rgba(99,102,241,0.3);
     }
 
-    .btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+    .btn-primary:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+      box-shadow: 0 0 36px rgba(99,102,241,0.45);
+    }
 
-    .btn-secondary {
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--ink3);
-      text-decoration: none;
-      display: flex;
+    .btn-ghost {
+      display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: color 0.2s;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--ink3);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+      letter-spacing: -0.01em;
     }
 
-    .btn-secondary:hover { color: var(--ink); }
+    .btn-ghost:hover {
+      color: var(--ink);
+      border-color: rgba(255,255,255,0.15);
+      background: var(--card);
+    }
 
-    /* STATS */
-    .stats {
-      display: flex;
-      gap: 0;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      margin: 0 48px;
+    /* METRICS STRIP */
+    .metrics {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 780px;
+      margin: 0 auto 0;
+      padding: 0 40px 80px;
+      gap: 1px;
       opacity: 0;
-      animation: fadeUp 0.6s ease 0.5s forwards;
+      animation: fadeUp 0.7s ease 0.5s forwards;
     }
 
-    .stat {
-      flex: 1;
-      padding: 32px 48px;
-      border-right: 1px solid var(--border);
+    .metric {
+      padding: 28px 0;
+      border-top: 1px solid var(--border);
     }
 
-    .stat:last-child { border-right: none; }
+    .metric:not(:last-child) {
+      padding-right: 32px;
+    }
 
-    .stat-num {
+    .metric-val {
       font-family: var(--mono);
-      font-size: 36px;
+      font-size: 32px;
       font-weight: 500;
       color: var(--ink);
-      letter-spacing: -0.03em;
+      letter-spacing: -0.04em;
       line-height: 1;
       margin-bottom: 6px;
     }
 
-    .stat-num span { color: var(--accent); }
+    .metric-val span { color: var(--accent2); }
 
-    .stat-label {
-      font-size: 13px;
+    .metric-label {
+      font-size: 12px;
       color: var(--ink3);
+      font-weight: 300;
+    }
+
+    /* DIVIDER */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border) 20%, var(--border) 80%, transparent);
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .divider-inner {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border) 30%, var(--border) 70%, transparent);
     }
 
     /* FEATURES */
     .section {
-      padding: 100px 48px;
-      max-width: 900px;
+      position: relative;
+      z-index: 1;
+      padding: 80px 40px;
+      max-width: 780px;
       margin: 0 auto;
     }
 
@@ -210,20 +301,9 @@
       font-family: var(--mono);
       font-size: 11px;
       color: var(--ink3);
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-bottom: 48px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-      max-width: 200px;
+      margin-bottom: 32px;
     }
 
     .features-grid {
@@ -232,145 +312,228 @@
       gap: 1px;
       background: var(--border);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
     }
 
     .feature-card {
-      background: var(--card);
-      padding: 40px;
+      background: var(--bg2);
+      padding: 32px;
       transition: background 0.2s;
       position: relative;
+      overflow: hidden;
     }
 
-    .feature-card:hover { background: var(--accent-light); }
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0% 0%, var(--accent-dim), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover { background: var(--bg3); }
+    .feature-card:hover::after { opacity: 1; }
 
     .feature-num {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 10px;
       color: var(--ink3);
-      letter-spacing: 0.08em;
-      margin-bottom: 20px;
+      letter-spacing: 0.1em;
+      margin-bottom: 18px;
     }
 
     .feature-icon {
-      width: 40px;
-      height: 40px;
-      background: var(--bg2);
+      width: 36px;
+      height: 36px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      margin-bottom: 20px;
-      transition: background 0.2s;
+      font-size: 16px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
     }
 
-    .feature-card:hover .feature-icon { background: var(--accent); }
-
     .feature-title {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 500;
       color: var(--ink);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       letter-spacing: -0.02em;
+      position: relative;
+      z-index: 1;
     }
 
     .feature-desc {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--ink2);
-      line-height: 1.65;
+      line-height: 1.7;
+      font-weight: 300;
+      position: relative;
+      z-index: 1;
     }
 
-    /* STATUS */
-    .status-section {
-      margin: 0 48px 100px;
+    /* PROGRESS SECTION */
+    .progress-section {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    .progress-card {
+      background: var(--bg2);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      background: var(--card);
     }
 
-    .status-header {
-      padding: 24px 32px;
+    .progress-header {
+      padding: 20px 24px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .status-title {
+    .progress-title {
       font-family: var(--mono);
-      font-size: 13px;
-      color: var(--ink);
-      font-weight: 500;
+      font-size: 12px;
+      color: var(--ink3);
+      letter-spacing: 0.05em;
     }
 
-    .status-live {
+    .progress-live {
       display: flex;
       align-items: center;
       gap: 6px;
       font-family: var(--mono);
       font-size: 11px;
-      color: #22a06b;
+      color: var(--green);
     }
 
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #22a06b;
-      animation: pulse 2s infinite;
+    /* OVERALL BAR */
+    .overall-progress {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .status-list {
-      list-style: none;
+    .overall-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
     }
+
+    .overall-label {
+      font-size: 12px;
+      color: var(--ink3);
+      font-weight: 300;
+    }
+
+    .overall-pct {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent2);
+    }
+
+    .bar-track {
+      height: 4px;
+      background: var(--bg3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      width: 0;
+      animation: growBar 1.2s cubic-bezier(0.16,1,0.3,1) 0.8s forwards;
+    }
+
+    @keyframes growBar {
+      to { width: 66.7%; }
+    }
+
+    /* STATUS ITEMS */
+    .status-list { list-style: none; }
 
     .status-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 16px 32px;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
+      gap: 14px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border2);
+      font-size: 13px;
       color: var(--ink2);
       transition: background 0.15s;
+      font-weight: 300;
     }
 
     .status-item:last-child { border-bottom: none; }
-    .status-item:hover { background: var(--bg); }
+    .status-item:hover { background: var(--bg3); }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
+    .status-icon {
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
       flex-shrink: 0;
     }
 
-    .done { background: #22a06b; }
-    .wip  { background: var(--accent); animation: pulse 2s infinite; }
-    .todo { background: var(--border); }
-
-    .status-tag {
-      margin-left: auto;
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 4px;
+    .icon-done {
+      background: var(--green-dim);
+      border: 1px solid rgba(52,211,153,0.3);
+      color: var(--green);
     }
 
-    .tag-done { background: #e6f6ef; color: #22a06b; }
-    .tag-wip  { background: var(--accent-light); color: var(--accent); }
-    .tag-todo { background: var(--bg2); color: var(--ink3); }
+    .icon-wip {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      color: var(--accent2);
+      animation: blink 2s infinite;
+    }
+
+    .icon-todo {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--ink3);
+    }
+
+    .status-text { flex: 1; }
+
+    .status-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-done { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+    .tag-wip  { background: var(--accent-dim); color: var(--accent2); border: 1px solid var(--accent-border); }
+    .tag-todo { background: var(--bg3); color: var(--ink3); border: 1px solid var(--border); }
 
     /* FOOTER */
     footer {
+      position: relative;
+      z-index: 1;
       border-top: 1px solid var(--border);
-      padding: 32px 48px;
+      padding: 28px 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      max-width: 100%;
     }
 
     .footer-logo {
@@ -379,29 +542,38 @@
       color: var(--ink3);
     }
 
-    .footer-logo span { color: var(--accent); }
+    .footer-logo span { color: var(--accent2); }
 
-    .footer-note {
+    .footer-stack {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stack-pill {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 10px;
       color: var(--ink3);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2px 8px;
     }
 
     /* ANIMATIONS */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(14px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes pulse {
+    @keyframes blink {
       0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
+      50% { opacity: 0.5; }
     }
 
-    /* SCROLL REVEAL */
     .reveal {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(16px);
       transition: opacity 0.6s ease, transform 0.6s ease;
     }
 
@@ -413,27 +585,37 @@
     @media (max-width: 640px) {
       nav { padding: 0 20px; }
       .hero { padding: 120px 20px 60px; }
-      h1 { font-size: 36px; }
-      .stats { margin: 0 20px; flex-direction: column; }
-      .stat { border-right: none; border-bottom: 1px solid var(--border); padding: 24px 20px; }
-      .stat:last-child { border-bottom: none; }
+      h1 { font-size: 38px; }
+      .metrics { padding: 0 20px 60px; grid-template-columns: 1fr; }
+      .metric:not(:last-child) { padding-right: 0; border-bottom: 1px solid var(--border); }
       .section { padding: 60px 20px; }
       .features-grid { grid-template-columns: 1fr; }
-      .status-section { margin: 0 20px 60px; }
-      footer { padding: 24px 20px; flex-direction: column; gap: 8px; text-align: center; }
+      .progress-section { padding: 0 20px 60px; }
+      footer { padding: 24px 20px; flex-direction: column; gap: 12px; text-align: center; }
+      .footer-stack { flex-wrap: wrap; justify-content: center; }
     }
   </style>
 </head>
 <body>
 
+  <div class="glow-bg"></div>
+
   <nav>
-    <div class="nav-logo">Key<span>Track</span></div>
-    <div class="nav-badge">개발 중 · v0.1</div>
+    <div class="nav-logo">Key<span class="nav-logo-dot">·</span>Track</div>
+    <div class="nav-right">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        개발 중 · v0.1
+      </div>
+    </div>
   </nav>
 
   <section class="hero">
-    <div class="hero-label">Naver Blog SEO Tool</div>
-    <h1>키워드 순위,<br>자동으로 <em>트래킹</em></h1>
+    <div class="hero-eyebrow">
+      <span class="hero-eyebrow-line"></span>
+      Naver Blog SEO Tool
+    </div>
+    <h1>키워드 순위를<br><span class="serif">자동으로</span> 트래킹</h1>
     <p class="hero-desc">
       네이버 블로그 운영자를 위한 키워드 분석 툴.<br>
       수천 개의 키워드를 자동으로 분석하고,<br>
@@ -441,25 +623,25 @@
     </p>
     <div class="hero-cta">
       <a href="https://github.com" class="btn-primary">
-        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.341-3.369-1.341-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.341-3.369-1.341-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
         GitHub 보기
       </a>
-      <a href="#features" class="btn-secondary">기능 살펴보기 →</a>
+      <a href="#features" class="btn-ghost">기능 살펴보기 →</a>
     </div>
   </section>
 
-  <div class="stats reveal">
-    <div class="stat">
-      <div class="stat-num">1,000<span>+</span></div>
-      <div class="stat-label">처리 가능한 키워드 수</div>
+  <div class="metrics reveal">
+    <div class="metric">
+      <div class="metric-val">1,000<span>+</span></div>
+      <div class="metric-label">처리 가능한 키워드 수</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">24<span>h</span></div>
-      <div class="stat-label">자동 순위 갱신 주기</div>
+    <div class="metric">
+      <div class="metric-val">24<span>h</span></div>
+      <div class="metric-label">자동 순위 갱신 주기</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">3<span>개월</span></div>
-      <div class="stat-label">개발 기간 목표</div>
+    <div class="metric">
+      <div class="metric-val">3<span>개월</span></div>
+      <div class="metric-label">개발 기간 목표</div>
     </div>
   </div>
 
@@ -493,48 +675,70 @@
     </div>
   </section>
 
-  <div class="status-section reveal">
-    <div class="status-header">
-      <span class="status-title">// 개발 진행 상황</span>
-      <span class="status-live"><span class="dot"></span>in progress</span>
+  <div class="progress-section reveal">
+    <div class="section-label" style="margin-bottom:20px;">개발 진행 상황</div>
+    <div class="progress-card">
+      <div class="progress-header">
+        <span class="progress-title">// build progress</span>
+        <span class="progress-live">
+          <svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="#34d399"/></svg>
+          in progress
+        </span>
+      </div>
+
+      <div class="overall-progress">
+        <div class="overall-top">
+          <span class="overall-label">전체 완료율</span>
+          <span class="overall-pct">4 / 6 완료</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill"></div>
+        </div>
+      </div>
+
+      <ul class="status-list">
+        <li class="status-item">
+          <span class="status-icon icon-done">✓</span>
+          <span class="status-text">프로젝트 기획 및 설계</span>
+          <span class="status-tag tag-done">완료</span>
+        </li>
+        <li class="status-item">
+          <span class="status-icon icon-done">✓</span>
+          <span class="status-text">Playwright 기반 순위 트래커 구현</span>
+          <span class="status-tag tag-done">완료</span>
+        </li>
+        <li class="status-item">
+          <span class="status-icon icon-done">✓</span>
+          <span class="status-text">SQLite 데이터 저장 및 스케줄러</span>
+          <span class="status-tag tag-done">완료</span>
+        </li>
+        <li class="status-item">
+          <span class="status-icon icon-done">✓</span>
+          <span class="status-text">키워드 발굴 기능 (네이버 API 연동)</span>
+          <span class="status-tag tag-done">완료</span>
+        </li>
+        <li class="status-item">
+          <span class="status-icon icon-wip">⟳</span>
+          <span class="status-text">AI 인사이트 엔진</span>
+          <span class="status-tag tag-wip">진행 중</span>
+        </li>
+        <li class="status-item">
+          <span class="status-icon icon-todo">○</span>
+          <span class="status-text">대시보드 UI 및 배포</span>
+          <span class="status-tag tag-todo">예정</span>
+        </li>
+      </ul>
     </div>
-    <ul class="status-list">
-      <li class="status-item">
-        <span class="status-dot done"></span>
-        프로젝트 기획 및 설계
-        <span class="status-tag tag-done">완료</span>
-      </li>
-      <li class="status-item">
-        <span class="status-dot wip"></span>
-        Playwright 기반 순위 트래커 구현
-        <span class="status-tag tag-wip">진행 중</span>
-      </li>
-      <li class="status-item">
-        <span class="status-dot todo"></span>
-        SQLite 데이터 저장 및 스케줄러
-        <span class="status-tag tag-todo">예정</span>
-      </li>
-      <li class="status-item">
-        <span class="status-dot todo"></span>
-        키워드 발굴 기능 (네이버 API 연동)
-        <span class="status-tag tag-todo">예정</span>
-      </li>
-      <li class="status-item">
-        <span class="status-dot todo"></span>
-        AI 인사이트 엔진
-        <span class="status-tag tag-todo">예정</span>
-      </li>
-      <li class="status-item">
-        <span class="status-dot todo"></span>
-        대시보드 UI 및 배포
-        <span class="status-tag tag-todo">예정</span>
-      </li>
-    </ul>
   </div>
 
   <footer>
-    <div class="footer-logo">Key<span>Track</span></div>
-    <div class="footer-note">built with Python · Playwright · Claude API</div>
+    <div class="footer-logo">Key<span>·</span>Track</div>
+    <div class="footer-stack">
+      <span class="stack-pill">Python</span>
+      <span class="stack-pill">Playwright</span>
+      <span class="stack-pill">SQLite</span>
+      <span class="stack-pill">Claude API</span>
+    </div>
   </footer>
 
   <script>
@@ -545,7 +749,7 @@
           observer.unobserve(e.target);
         }
       });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.08 });
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   </script>
